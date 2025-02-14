@@ -1,101 +1,181 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
+import useSWR from "swr";
+// import axios from 'axios'
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [files, setFiles] = useState({});
+  const [isProcessing, setIsProcessing] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const { data: videoUrl, mutate: vide1Mutate } = useSWR("/api/video");
+
+  const { data: rvideoUrl, mutate: viderMutate } = useSWR("/api/rvideo");
+
+  const [isNprocessing, setIsNProcessing] = useState(false);
+
+  const handleUpload = async (e) => {
+    e.preventDefault();
+    setIsProcessing(true);
+
+    const formData = new FormData();
+    formData.append("image1", files.image1);
+    formData.append("image2", files.image2);
+    // console.log(files.image1)
+
+    try {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      vide1Mutate("/api/video");
+      console.log(videoUrl);
+    } catch (error) {
+      console.error("Upload failed:", error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleRUpload = async (e) => {
+    e.preventDefault();
+    setIsNProcessing(true);
+
+    const formData = new FormData();
+    formData.append("image1", files.image1);
+    formData.append("image2", files.image2);
+    // console.log(files.image1)
+
+    try {
+      const response = await fetch("/api/rupload", {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      viderMutate("/api/rvideo");
+      console.log(rvideoUrl);
+    } catch (error) {
+      console.error("Upload failed:", error);
+    } finally {
+      setIsNProcessing(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="max-w-3xl mx-auto space-y-8">
+        <h1 className="text-4xl font-bold text-center text-primary">
+          FILM Video Interpolation
+        </h1>
+
+        <form onSubmit={handleUpload} className="space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <label className="block">
+              <span className="sr-only">Choose first image</span>
+              <input
+                type="file"
+                onChange={(e) =>
+                  setFiles({ ...files, image1: e.target.files[0] })
+                }
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-white hover:file:bg-primary"
+                accept="image/*"
+                required
+              />
+            </label>
+
+            <label className="block">
+              <span className="sr-only">Choose second image</span>
+              <input
+                type="file"
+                onChange={(e) =>
+                  setFiles({ ...files, image2: e.target.files[0] })
+                }
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-white hover:file:bg-primary"
+                accept="image/*"
+                required
+              />
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isProcessing}
+            className="w-full px-6 py-3 bg-accent text-white font-medium rounded-md hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            {isProcessing ? "Processing..." : "Generate Video"}
+          </button>
+        </form>
+        {videoUrl && (
+          <div className="aspect-video bg-black rounded-lg overflow-hidden">
+            <video controls className="w-full h-full" key={videoUrl}>
+              <source src="/output.mp4" type="video/mp4" />
+            </video>
+          </div>
+        )}
+
+        {videoUrl && (
+          <div className="max-w-3xl mx-auto space-y-8">
+            <h1 className="text-4xl font-bold text-center text-primary">
+              Increase the number of frames
+            </h1>
+
+            <form onSubmit={handleRUpload} className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <label className="block">
+                  <span className="sr-only">Choose first image</span>
+                  <input
+                    type="file"
+                    onChange={(e) =>
+                      setFiles({ ...files, image1: e.target.files[0] })
+                    }
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-white hover:file:bg-primary"
+                    accept="image/*"
+                    required
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="sr-only">Choose second image</span>
+                  <input
+                    type="file"
+                    onChange={(e) =>
+                      setFiles({ ...files, image2: e.target.files[0] })
+                    }
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-white hover:file:bg-primary"
+                    accept="image/*"
+                    required
+                  />
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isNprocessing}
+                className="w-full px-6 py-3 bg-accent text-white font-medium rounded-md hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isNprocessing ? "Processing..." : "Generate Video"}
+              </button>
+            </form>
+            {rvideoUrl && (
+              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                <video controls className="w-full h-full" key={rvideoUrl}>
+                  <source src="/output1.mp4" type="video/mp4" />
+                </video>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
