@@ -6,7 +6,7 @@ import tensorflow as tf
 import tensorflow_hub as hub
 import numpy as np
 import mediapy as media
-
+import cv2
 # Add argument parsing
 parser = argparse.ArgumentParser()
 parser.add_argument('-i1', '--image1', required=True)
@@ -17,11 +17,18 @@ args = parser.parse_args()
 # Load model
 model = hub.load("https://tfhub.dev/google/film/1")
 
+
+_UINT8_MAX_F = float(np.iinfo(np.uint8).max)
+TARGET_SIZE = (256, 256)  # Consistent image size
+TIMES_TO_INTERPOLATE = 6  # Number of recursive interpolations
+
+
 def load_image(path):
     image_data = tf.io.read_file(path)
     image = tf.io.decode_image(image_data, channels=3)
-    image = tf.cast(image, tf.float32).numpy()
-    return image / 255.0
+    image = tf.cast(image, tf.float32).numpy()/_UINT8_MAX_F
+    image=cv2.resize(image, TARGET_SIZE)
+    return image
 
 def main():
     image1 = load_image(args.image1)
